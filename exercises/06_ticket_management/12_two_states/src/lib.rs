@@ -8,13 +8,14 @@
 
 use ticket_fields::{TicketDescription, TicketTitle};
 
-#[derive(Clone)]
-pub struct TicketStore {
-    tickets: Vec<Ticket>,
-}
-
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct TicketId(u64);
+
+#[derive(Clone)]
+pub struct TicketStore {
+    id_counter: u64,
+    tickets: Vec<Ticket>,
+}
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Ticket {
@@ -40,12 +41,28 @@ pub enum Status {
 impl TicketStore {
     pub fn new() -> Self {
         Self {
+            id_counter: 0,
             tickets: Vec::new(),
         }
     }
 
-    pub fn add_ticket(&mut self, ticket: Ticket) {
-        self.tickets.push(ticket);
+    pub fn add_ticket(&mut self, draft: TicketDraft) -> TicketId {
+        let id = TicketId(self.id_counter);
+
+        self.tickets.push(Ticket {
+            id,
+            title: draft.title,
+            description: draft.description,
+            status: Status::ToDo,
+        });
+
+        self.id_counter += 1;
+
+        id
+    }
+
+    pub fn get(&self, id: TicketId) -> Option<&Ticket> {
+        self.tickets.iter().find(|ticket| ticket.id == id)
     }
 }
 
